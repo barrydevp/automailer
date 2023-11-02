@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "paths": {
+      // https://docs.nestjs.com/cli/scripts#build
+      // https://nodejs.org/api/packages.html#imports
+      "#entity/*": ["./src/entity/*"],
+      "@/*": ["./src/*"]
+    },
+    "baseUrl": "./",
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "resolveJsonModule": true,
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false
+  }
+}
