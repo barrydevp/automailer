@@ -17,7 +17,7 @@ export class AccountCron {
     private readonly gmailService: GmailService,
   ) {}
 
-  @Cron(CronExpression.EVERY_5_SECONDS)
+  @Cron(CronExpression.EVERY_MINUTE)
   async moveGmailSpamToInbox() {
     if (this.moveGmailSpamToInboxRunning) {
       return;
@@ -34,7 +34,14 @@ export class AccountCron {
       this.logger.log(`Number of accounts: ${accounts.length}`);
 
       for (const account of accounts) {
-        await this.accountService.moveGmailSpamToInbox(account, 100);
+        await this.accountService
+          .moveGmailSpamToInbox(account, 100)
+          .catch((err) => {
+            this.logger.error(
+              err,
+              `error when processing account ${account.email}`,
+            );
+          });
       }
 
       this.logger.log(`Done ${accounts.length} accounts.`);
