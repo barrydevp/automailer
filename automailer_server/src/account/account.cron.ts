@@ -19,7 +19,10 @@ export class AccountCron {
 
   @Cron(CronExpression.EVERY_MINUTE)
   async moveGmailSpamToInbox() {
-    if (this.moveGmailSpamToInboxRunning) {
+    if (
+      this.moveGmailSpamToInboxRunning ||
+      process.env.NODE_ENV == 'development' // don't run on development
+    ) {
       return;
     }
 

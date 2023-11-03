@@ -35,6 +35,7 @@ interface ILoggingVariables {
 
 export function getLogLevel() {
   let logLevel = process.env.LOGGING_LEVEL ?? 'info';
+  console.log('Log level: ' + logLevel);
 
   if (loggingLevelArr.indexOf(logLevel) === -1) {
     // eslint-disable-next-line no-console
@@ -95,7 +96,9 @@ export function createNestLoggingModuleOptions(settings: ILoggerSettings) {
     );
   }
 
-  const transport = ['local', 'test', 'debug'].includes(process.env.NODE_ENV)
+  const transport = ['development', 'local', 'test', 'debug'].includes(
+    process.env.NODE_ENV,
+  )
     ? { target: 'pino-pretty' }
     : undefined;
 
@@ -120,7 +123,9 @@ export function createNestLoggingModuleOptions(settings: ILoggerSettings) {
         tenant: values.tenant,
       },
       transport: transport,
-      autoLogging: !['test', 'local'].includes(process.env.NODE_ENV),
+      autoLogging: !['test', 'local', 'development'].includes(
+        process.env.NODE_ENV,
+      ),
     },
   };
 }

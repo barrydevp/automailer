@@ -1,5 +1,5 @@
 export const appConfig = {
-  apiPrefix: import.meta.env.API_URL || "https://svof.xyz/api",
+  apiPrefix: import.meta.env.VITE_API_URL || "/api",
   authenticatedEntryPath: "/home",
   unAuthenticatedEntryPath: "/sign-in",
   tourPath: "/",

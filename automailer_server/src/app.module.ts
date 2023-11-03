@@ -1,5 +1,6 @@
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ClassSerializerInterceptor, Module } from '@nestjs/common';
-import { ServeStaticModule } from '@nestjs/serve-static';
+// import { ServeStaticModule } from '@nestjs/serve-static';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
@@ -12,14 +13,13 @@ import {
   createNestLoggingModuleOptions,
 } from './common/logging/logger';
 import * as packageJson from '../package.json';
-import { join } from 'path';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+// import { join } from 'path';
 
 @Module({
   imports: [
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', '..', '..', 'automailer_client/dist'),
-    }),
+    // ServeStaticModule.forRoot({
+    //   rootPath: join(__dirname, '..', '..', '..', 'automailer_client/dist'),
+    // }),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env'],

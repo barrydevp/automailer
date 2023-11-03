@@ -1,7 +1,7 @@
 export const siteConfig = {
   name: "automailer",
-  url: "https://ui.shadcn.com",
-  ogImage: "https://ui.shadcn.com/og.jpg",
+  url: "https://svof.xyz",
+  ogImage: "https://svof.xyz/og.jpg",
   description: "Automating your mail box",
   links: {
     twitter: "https://twitter.com/",

@@ -20,13 +20,13 @@ export class GoogleController {
   }
 
   @Get('oauth2-callback')
-  @Redirect('http://100.103.32.144:3000/', 302)
+  @Redirect(process.env.CONNECTOR_CALLBACK_URL || 'http://localhost:5173', 302)
   async oauth2Callback(@Query() query: Oauth2CallbackQueryDto) {
     await this.googleService.oauth2Callback(query);
 
     let url = this.config.get(
       'CONNECTOR_CALLBACK_URL',
-      'http://100.103.32.144:5173',
+      'http://localhost:5173',
     );
 
     if (query.state) {

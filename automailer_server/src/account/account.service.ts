@@ -58,7 +58,7 @@ export class AccountService {
     return account;
   }
 
-  async moveGmailSpamToInbox(account: Account, maxMessage: number = 10000) {
+  async moveGmailSpamToInbox(account: Account, maxMessage?: number) {
     if (!account.credentials) {
       return false;
     }
@@ -73,11 +73,23 @@ export class AccountService {
     });
     const gmail = this.gmailService.getV1(oauth);
 
-    const spamBoxIter = this.gmailService.spamBoxIterator(gmail, maxMessage);
+    const spamBoxIter = this.gmailService.messageIterator(
+      gmail,
+      {
+        labelIds: ['CATEGORY_PROMOTIONS'],
+        includeSpamTrash: true,
+      },
+      maxMessage,
+    );
     for await (const messages of spamBoxIter) {
       this.logger.log(`number of messages ${messages.length}`);
 
-      await this.gmailService.batchSpamToInbox(gmail, messages);
+      await this.gmailService.batchModifyMessages(gmail, messages, {
+        requestBody: {
+          removeLabelIds: ['SPAM', 'CATEGORY_PROMOTIONS', 'UNREAD'],
+          addLabelIds: ['INBOX', 'IMPORTANT', 'STARRED'],
+        },
+      });
       this.logger.log(`moved ${messages.length}`);
       // TODO: add statistic here
     }
