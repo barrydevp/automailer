@@ -186,4 +186,13 @@ function useToast() {
   };
 }
 
-export { useToast, toast };
+function toastError(err: Error, options: Toast = {}) {
+  return toast({
+    variant: "destructive",
+    title: "Uh oh! Something went wrong.",
+    description: err?.message || "There was a problem with your request.",
+    ...options,
+  });
+}
+
+export { useToast, toast, toastError };

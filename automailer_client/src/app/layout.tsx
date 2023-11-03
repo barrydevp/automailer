@@ -16,15 +16,12 @@ export const metadata = {
   },
   description: siteConfig.description,
   keywords: [
-    "Next.js",
-    "React",
-    "Tailwind CSS",
-    "Server Components",
-    "Radix UI",
+    "Automailer",
+    "Gmail",
   ],
   authors: [
     {
-      name: "shadcn",
+      name: "automailer",
       url: "https://shadcn.com",
     },
   ],
@@ -66,7 +63,7 @@ export const metadata = {
 
 const nav = {
   items: [
-    { href: "/dashboard", name: "Dashboard" },
+    // { href: "/dashboard", name: "Dashboard" },
     { href: "/accounts", name: "Accounts" },
   ],
 };

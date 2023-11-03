@@ -1,12 +1,11 @@
 export const siteConfig = {
-  name: "shadcn/ui",
+  name: "automailer",
   url: "https://ui.shadcn.com",
   ogImage: "https://ui.shadcn.com/og.jpg",
-  description:
-    "Beautifully designed components built with Radix UI and Tailwind CSS.",
+  description: "Automating your mail box",
   links: {
-    twitter: "https://twitter.com/shadcn",
-    github: "https://github.com/shadcn-ui/ui",
+    twitter: "https://twitter.com/",
+    github: "https://github.com/",
   },
 };
 

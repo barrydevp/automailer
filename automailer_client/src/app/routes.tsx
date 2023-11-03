@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import RootLayout from "@/app/layout";
 import IndexPage from "./page";
 import ErrorPage from "./error-page";
@@ -19,7 +19,8 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <IndexPage />,
+        // element: <IndexPage />,
+        element: <Navigate to="/accounts" />
       },
       {
         path: "dashboard",

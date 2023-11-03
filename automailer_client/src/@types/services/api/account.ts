@@ -15,7 +15,7 @@ export type Account = {
 };
 
 export type FindAccountResponse = {
-  data?: Account[];
-  page?: number;
-  limit?: number;
+  data: Account[];
+  page: number;
+  limit: number;
 };

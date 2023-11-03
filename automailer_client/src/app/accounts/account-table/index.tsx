@@ -4,7 +4,7 @@ import { DataTable } from "@/components/shared/data-table";
 import { columns } from "./columns";
 
 export interface AccountTableProps {
-  data?: Account[];
+  data: Account[];
 }
 
 export function AccountTable({ data }: AccountTableProps) {

@@ -3,6 +3,7 @@ import { useQuery } from "react-query";
 import { findAccount } from "@/services/api";
 import { FindAccountResponse } from "@/@types/services/api";
 import ConnectorButton from "./connect-button";
+import { toastError } from "@/components/ui/use-toast";
 
 export const metadata = {
   title: "Tasks",
@@ -10,8 +11,16 @@ export const metadata = {
 };
 
 export default function AccountPage() {
-  const query = useQuery("accounts", findAccount);
-  const { data: accounts }: FindAccountResponse = query.data ?? {};
+  const query = useQuery("accounts", findAccount, {
+    initialData: { data: [], page: 1, limit: 10 },
+    onError: (err: any) => {
+      if (err?.response?.data?.message) {
+        err.message = err.response.data.message;
+      }
+      toastError(err);
+    },
+  });
+  const { data: accounts } = query.data as FindAccountResponse;
 
   return (
     <>
