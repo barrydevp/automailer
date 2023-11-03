@@ -26,7 +26,11 @@ export class AccountCron {
     this.moveGmailSpamToInboxRunning = true;
 
     try {
-      const accounts = await this.accountRepository.find({}, {}, { limit: 2 });
+      const accounts = await this.accountRepository.find(
+        {},
+        {},
+        { limit: 1000 },
+      );
       this.logger.log(`Number of accounts: ${accounts.length}`);
 
       for (const account of accounts) {
@@ -37,7 +41,7 @@ export class AccountCron {
     } catch (err) {
       this.logger.error(err);
     } finally {
-      // this.moveGmailSpamToInboxRunning = false;
+      this.moveGmailSpamToInboxRunning = false;
     }
   }
 }
