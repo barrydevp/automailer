@@ -18,7 +18,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', '..', '..', 'automailer/dist'),
+      rootPath: join(__dirname, '..', '..', '..', 'automailer_client/dist'),
     }),
     ConfigModule.forRoot({
       isGlobal: true,
