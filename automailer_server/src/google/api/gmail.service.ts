@@ -53,7 +53,7 @@ export class GmailService {
       requestBody: {
         ids: messages.map((m) => m.id),
         removeLabelIds: ['SPAM'],
-        addLabelIds: ['INBOX'],
+        addLabelIds: ['INBOX', 'IMPORTANT', 'STARRED'],
       },
     });
   }
