@@ -25,8 +25,9 @@ export class GmailService {
         .list({
           userId: 'me',
           pageToken,
-          labelIds: ['SPAM', 'CATEGORY_PROMOTIONS'],
+          labelIds: ['CATEGORY_PROMOTIONS'],
           maxResults,
+          includeSpamTrash: true,
         })
         .then((r) => r.data);
 
