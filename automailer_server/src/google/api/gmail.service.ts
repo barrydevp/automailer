@@ -14,6 +14,7 @@ export class GmailService {
   }
 
   async *spamBoxIterator(gmail: gmail_v1.Gmail, max: number = 10000) {
+    console.log(gmail.context._options.auth)
     let pageToken: string;
     let n = 0;
 
