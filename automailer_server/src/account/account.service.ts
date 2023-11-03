@@ -64,6 +64,7 @@ export class AccountService {
     }
 
     const { credentials } = account;
+    console.log(credentials);
     const oauth = this.goauthService.getOauth2Client(credentials);
     const gmail = this.gmailService.getV1(oauth);
 
