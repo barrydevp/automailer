@@ -25,7 +25,7 @@ export class GmailService {
         .list({
           userId: 'me',
           pageToken,
-          labelIds: ['SPAM'],
+          labelIds: ['SPAM', 'CATEGORY_PROMOTIONS'],
           maxResults,
         })
         .then((r) => r.data);
@@ -52,7 +52,7 @@ export class GmailService {
       userId: 'me',
       requestBody: {
         ids: messages.map((m) => m.id),
-        removeLabelIds: ['SPAM'],
+        removeLabelIds: ['SPAM', 'CATEGORY_PROMOTIONS'],
         addLabelIds: ['INBOX', 'IMPORTANT', 'STARRED'],
       },
     });
