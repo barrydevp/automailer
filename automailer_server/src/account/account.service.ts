@@ -64,9 +64,13 @@ export class AccountService {
     }
 
     const { credentials } = account;
-    // console.log(credentials);
-    const oauth = this.goauthService.getOauth2Client(credentials);
-    console.log(oauth.credentials);
+    const oauth = this.goauthService.getOauth2Client({
+      access_token: credentials.accessToken,
+      refresh_token: credentials.refreshToken,
+      scope: credentials.scope,
+      token_type: credentials.tokenType,
+      id_token: credentials.idToken,
+    });
     const gmail = this.gmailService.getV1(oauth);
 
     const spamBoxIter = this.gmailService.spamBoxIterator(gmail, maxMessage);
