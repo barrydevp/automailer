@@ -1,12 +1,16 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { format } from 'date-fns';
 import { GoogleAuthService } from '@/google/auth/google-auth.service';
 import { GmailService } from '@/google/api/gmail.service';
 import {
   AccountRepository,
   AccountStatsRepository,
 } from '@/database/repositories';
-import { Account, AccountStatsEvent, eAccountStatus } from '@/database/schemas';
+import {
+  Account,
+  AccountStats,
+  eAccountStatsEventType,
+  eAccountStatus,
+} from '@/database/schemas';
 import {
   CreateAccountDto,
   UpdateAccountDto,
@@ -101,81 +105,134 @@ export class AccountService {
     );
   }
 
-  async moveGmailSpamToInbox(account: Account, maxMessage?: number) {
+  async updateAfterRun(account: Account, err?: any) {
+    const updateStats: Partial<AccountStats> = {
+      runTimes: 1,
+    };
+    const updateAccount: Partial<Account> = {
+      updatedAt: new Date(),
+    };
+
+    if (err) {
+      if (isInvalidCredentialErr(err)) {
+        updateAccount.status = eAccountStatus.CRED_INVALID;
+      }
+      updateStats.events = [
+        {
+          type: eAccountStatsEventType.ERROR,
+          description: 'An error occurred when running moveGmailSpamToInbox().',
+          body: err,
+          created: new Date(),
+        },
+      ];
+    }
+
+    await this.updateStats(account, updateStats).catch((e) =>
+      this.logger.error(e, 'Update account stats failed'),
+    );
+
+    this.accountRepo.Model.findOneAndUpdate(
+      { _id: account._id },
+      { $set: updateAccount },
+      { projection: '_id' },
+    ).catch((e) => this.logger.error(e, 'Update account status failed'));
+  }
+
+  async updateStats(account: Account, params: Partial<AccountStats>) {
     const now = new Date();
 
-    try {
-      if (!account.credentials) {
-        throw invalidCredErr;
-      }
+    const $set: any = {
+      account: account._id,
+      day: toDateDay(now),
+    };
 
-      const { credentials } = account;
-      const oauth = this.goauthService.getOauth2Client({
-        access_token: credentials.accessToken,
-        refresh_token: credentials.refreshToken,
-        scope: credentials.scope,
-        token_type: credentials.tokenType,
-        id_token: credentials.idToken,
-      });
-      const gmail = this.gmailService.getV1(oauth);
+    const $push: any = {};
+    if (params.events) {
+      $push.events = { $each: params.events };
+    }
 
-      const spamBoxIter = this.gmailService.messageIterator(
-        gmail,
+    const $inc: any = {};
+    if (params.runTimes) {
+      $inc.runTimes = params.runTimes;
+    }
+    if (params.mailMoved) {
+      $inc.mailMoved = params.mailMoved;
+    }
+
+    const newStats = await this.accountStatsRepo.Model.findOneAndUpdate(
+      {
+        account: account._id,
+        day: toDateDay(now),
+      },
+      {
+        $set,
+        $inc,
+      },
+      { projection: '_id', upsert: true, new: true },
+    );
+
+    if (account?.stats?.day !== newStats) {
+      await this.accountRepo.Model.findOneAndUpdate(
         {
-          labelIds: ['CATEGORY_PROMOTIONS'],
-          includeSpamTrash: true,
+          _id: account._id,
         },
-        maxMessage,
+        { $set: { stats: newStats._id } },
+        { projection: '_id' },
       );
-      for await (const messages of spamBoxIter) {
-        this.logger.log(`number of messages ${messages.length}`);
-
-        await this.gmailService.batchModifyMessages(gmail, messages, {
-          requestBody: {
-            removeLabelIds: ['SPAM', 'CATEGORY_PROMOTIONS', 'UNREAD'],
-            addLabelIds: ['INBOX', 'IMPORTANT', 'STARRED'],
-          },
-        });
-
-        this.logger.log(`moved ${messages.length}`);
-        // TODO: add statistic here
-        const newStats = await this.accountStatsRepo.Model.findOneAndUpdate(
-          {
-            account: account._id,
-            day: toDateDay(now),
-          },
-          {
-            account: account._id,
-            day: toDateDay(now),
-          },
-          { upsert: true, new: true },
-        );
-
-        if (account?.stats?.day !== newStats) {
-          await this.accountRepo.Model.findOneAndUpdate(
-            {
-              _id: account._id,
-            },
-            { $set: { stats: newStats._id } },
-          );
-        }
-      }
-
-      // TODO: do something here
-    } catch (err) {
-      console.log(err.type);
-      if (isInvalidCredentialErr(err)) {
-        this.changeStatus(account._id, eAccountStatus.CRED_INVALID).catch((e) =>
-          this.logger.error(e, 'Update account status failed'),
-        );
-      }
     }
   }
 
-  // update(id: number, updateAccountDto: UpdateAccountDto) {
-  //   return `This action updates a #${id} account`;
-  // }
-  //
+  async moveGmailSpamToInbox(account: Account, maxMessage?: number) {
+    if (!account.credentials) {
+      throw invalidCredErr;
+    }
+
+    const { credentials } = account;
+    const oauth = this.goauthService.getOauth2Client({
+      access_token: credentials.accessToken,
+      refresh_token: credentials.refreshToken,
+      scope: credentials.scope,
+      token_type: credentials.tokenType,
+      id_token: credentials.idToken,
+    });
+    const gmail = this.gmailService.getV1(oauth);
+
+    const spamBoxIter = this.gmailService.messageIterator(
+      gmail,
+      {
+        // labelIds: ['CATEGORY_PROMOTIONS'],
+        labelIds: ['SPAM'],
+        includeSpamTrash: true,
+      },
+      maxMessage,
+    );
+    for await (const messages of spamBoxIter) {
+      this.logger.log(`number of messages ${messages.length}`);
+
+      await this.gmailService.batchModifyMessages(gmail, messages, {
+        requestBody: {
+          // removeLabelIds: ['SPAM', 'CATEGORY_PROMOTIONS', 'UNREAD'],
+          removeLabelIds: ['SPAM'],
+          // addLabelIds: ['INBOX', 'IMPORTANT', 'STARRED'],
+          addLabelIds: ['INBOX', 'STARRED'],
+        },
+      });
+
+      this.logger.log(`moved ${messages.length}`);
+      // TODO: add statistic here
+
+      await this.updateStats(account, {
+        mailMoved: messages.length,
+      });
+    }
+
+    // TODO: do something here
+  }
+
+  updateById(id: any, update: UpdateAccountDto) {
+    // this.accountRepo.Model.findOneAndUpdate({ _id: id }, { status: status });
+  }
+
   // remove(id: number) {
   //   return `This action removes a #${id} account`;
   // }
