@@ -34,7 +34,7 @@ export function isInvalidCredentialErr(err) {
   return (
     err === invalidCredErr ||
     err?.message === 'invalid_grant' ||
-    err?.message === 'Invalid Credential'
+    err?.message === 'Invalid Credentials'
   );
 }
 
