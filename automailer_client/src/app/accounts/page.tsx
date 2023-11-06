@@ -12,7 +12,7 @@ export const metadata = {
 
 export default function AccountPage() {
   const query = useQuery("accounts", findAccount, {
-    initialData: { data: [], page: 1, limit: 10 },
+    initialData: { data: [], page: 1, limit: 10, total: 0 },
     onError: (err: any) => {
       toastError(err);
     },
@@ -26,7 +26,7 @@ export default function AccountPage() {
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Welcome back!</h2>
             <p className="text-muted-foreground">
-              Here&apos;s a list of your tasks for this month!
+              Here&apos;s a list of your accounts!
             </p>
           </div>
         </div>

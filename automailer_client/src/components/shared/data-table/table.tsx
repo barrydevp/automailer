@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import {
+  Table,
   ColumnDef,
   ColumnFiltersState,
   SortingState,
@@ -17,7 +18,7 @@ import {
 } from "@tanstack/react-table";
 
 import {
-  Table,
+  Table as TableUI,
   TableBody,
   TableCell,
   TableHead,
@@ -28,10 +29,14 @@ import {
 import { DataTablePagination } from "./pagination";
 import { DataTableToolbar } from "./toolbar";
 
-interface DataTableProps<TData, TValue> {
+export interface DataTableToolbarProps<TData> {
+  table: Table<TData>;
+}
+
+export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  toolbarRender?: () => React.ReactNode;
+  toolbarRender?: (props: DataTableToolbarProps<TData>) => React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -72,10 +77,10 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       <DataTableToolbar table={table}>
-        {toolbarRender && toolbarRender()}
+        {toolbarRender && toolbarRender({ table })}
       </DataTableToolbar>
       <div className="rounded-md border">
-        <Table>
+        <TableUI>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -122,7 +127,7 @@ export function DataTable<TData, TValue>({
               </TableRow>
             )}
           </TableBody>
-        </Table>
+        </TableUI>
       </div>
       <DataTablePagination table={table} />
     </div>

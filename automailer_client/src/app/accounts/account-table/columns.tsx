@@ -39,7 +39,7 @@ export const columns = [
       </div>
     ),
   }),
-  columnHelper.accessor("name", {
+  columnHelper.accessor("email", {
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="name" />
     ),
@@ -66,6 +66,9 @@ export const columns = [
         </div>
       );
     },
+    // filterFn: (row, id, value) => {
+    //   return value.includes(row.getValue(id));
+    // },
   }),
   columnHelper.accessor("status", {
     header: ({ column }) => (
@@ -88,6 +91,9 @@ export const columns = [
           <span className="font-bold">{status.label}</span>
         </div>
       );
+    },
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id))
     },
   }),
   columnHelper.accessor("updatedAt", {

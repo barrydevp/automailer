@@ -3,3 +3,4 @@ export * from "./toolbar";
 export * from "./view-options";
 export * from "./column-header";
 export * from "./table";
+export * from "./faceted-filter"
