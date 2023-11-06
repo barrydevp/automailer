@@ -296,7 +296,7 @@ export class AccountService {
         const report: Record<string, any> = {};
 
         try {
-          const result = await this.moveGmailSpamToInbox(account, 1);
+          const result = await this.moveGmailSpamToInbox(account);
           Object.assign(report, result);
         } catch (e) {
           report.err = e.message;
