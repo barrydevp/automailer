@@ -22,7 +22,7 @@ export class AccountCron {
     private readonly gmailService: GmailService,
   ) {}
 
-  @Cron(CronExpression.EVERY_5_SECONDS)
+  @Cron(CronExpression.EVERY_MINUTE)
   async moveGmailSpamToInbox() {
     if (
       this.moveGmailSpamToInboxRunning ||
