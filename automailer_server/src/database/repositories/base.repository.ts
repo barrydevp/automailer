@@ -16,14 +16,10 @@ export class BaseRepository<
   T_MappedEntity,
   T_Enforcement = EnforcementEmpty,
 > {
-  public _model: Model<T_DBModel>;
-
   constructor(
-    protected MongooseModel: Model<T_DBModel>,
+    public Model: Model<T_DBModel>,
     protected entity: ClassConstructor<T_MappedEntity>,
-  ) {
-    this._model = MongooseModel;
-  }
+  ) {}
 
   public static createObjectId() {
     return new Types.ObjectId().toString();
@@ -41,7 +37,7 @@ export class BaseRepository<
     query: FilterQuery<T_DBModel> & T_Enforcement,
     limit?: number,
   ): Promise<number> {
-    return this.MongooseModel.countDocuments(query, {
+    return this.Model.countDocuments(query, {
       limit,
     });
   }
@@ -50,7 +46,7 @@ export class BaseRepository<
     query: any[],
     options: { readPreference?: 'secondaryPreferred' | 'primary' } = {},
   ): Promise<any> {
-    return await this.MongooseModel.aggregate(query).read(
+    return await this.Model.aggregate(query).read(
       options.readPreference || 'primary',
     );
   }
@@ -63,11 +59,9 @@ export class BaseRepository<
       query?: QueryOptions<T_DBModel>;
     } = {},
   ): Promise<T_MappedEntity | null> {
-    const data = await this.MongooseModel.findOne(
-      query,
-      select,
-      options.query,
-    ).read(options.readPreference || 'primary');
+    const data = await this.Model.findOne(query, select, options.query).read(
+      options.readPreference || 'primary',
+    );
     if (!data) return null;
 
     return this.mapEntity(data.toObject());
@@ -79,7 +73,7 @@ export class BaseRepository<
     /** The number of documents that were deleted */
     deletedCount: number;
   }> {
-    return await this.MongooseModel.deleteMany(query);
+    return await this.Model.deleteMany(query);
   }
 
   async find(
@@ -87,7 +81,7 @@ export class BaseRepository<
     select: ProjectionType<T_MappedEntity> = '',
     options: { limit?: number; sort?: any; skip?: number } = {},
   ): Promise<T_MappedEntity[]> {
-    const data = await this.MongooseModel.find(query, select, {
+    const data = await this.Model.find(query, select, {
       sort: options.sort || null,
     })
       .skip(options.skip as number)
@@ -104,10 +98,9 @@ export class BaseRepository<
     options: { limit?: number; sort?: any; skip?: number } = {},
     batchSize = 500,
   ) {
-    for await (const doc of this._model
-      .find(query, select, {
-        sort: options.sort || null,
-      })
+    for await (const doc of this.Model.find(query, select, {
+      sort: options.sort || null,
+    })
       .batchSize(batchSize)
       .cursor()) {
       yield this.mapEntity(doc);
@@ -118,7 +111,7 @@ export class BaseRepository<
     data: FilterQuery<T_DBModel> & T_Enforcement,
     options: IOptions = {},
   ): Promise<T_MappedEntity> {
-    const newEntity = new this.MongooseModel(data);
+    const newEntity = new this.Model(data);
 
     const saveOptions = options?.writeConcern
       ? { w: options?.writeConcern }
@@ -139,7 +132,7 @@ export class BaseRepository<
   }> {
     let result;
     try {
-      result = await this.MongooseModel.insertMany(data, { ordered });
+      result = await this.Model.insertMany(data, { ordered });
     } catch (e) {
       throw new GenericException(e.message);
     }
@@ -160,7 +153,7 @@ export class BaseRepository<
     matched: number;
     modified: number;
   }> {
-    const saved = await this.MongooseModel.updateMany(query, updateBody, {
+    const saved = await this.Model.updateMany(query, updateBody, {
       multi: true,
     });
 
@@ -174,27 +167,27 @@ export class BaseRepository<
     query: FilterQuery<T_DBModel> & T_Enforcement,
     data: UpdateQuery<T_DBModel>,
   ) {
-    const saved = await this.MongooseModel.findOneAndUpdate(query, data, {
+    const saved = await this.Model.findOneAndUpdate(query, data, {
       upsert: true,
       new: true,
-    });
+    }).populate('stats');
 
     return this.mapEntity(saved);
   }
 
   async upsertMany(data: (FilterQuery<T_DBModel> & T_Enforcement)[]) {
     const promises = data.map((entry) =>
-      this.MongooseModel.findOneAndUpdate(entry, entry, { upsert: true }),
+      this.Model.findOneAndUpdate(entry, entry, { upsert: true }),
     );
 
     return await Promise.all(promises);
   }
 
   async bulkWrite(bulkOperations: any, ordered = false): Promise<any> {
-    return await this.MongooseModel.bulkWrite(bulkOperations, { ordered });
+    return await this.Model.bulkWrite(bulkOperations, { ordered });
   }
 
-  protected mapEntity<TData>(
+  public mapEntity<TData>(
     data: TData,
   ): TData extends null ? null : T_MappedEntity {
     return plainToInstance(
@@ -203,7 +196,7 @@ export class BaseRepository<
     ) as any;
   }
 
-  protected mapEntities(data: any): T_MappedEntity[] {
+  public mapEntities(data: any): T_MappedEntity[] {
     return plainToInstance<T_MappedEntity, T_MappedEntity[]>(
       this.entity,
       JSON.parse(JSON.stringify(data)),

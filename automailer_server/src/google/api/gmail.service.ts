@@ -1,8 +1,8 @@
-import Promise from 'bluebird';
+import P from 'bluebird';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { google, gmail_v1 } from 'googleapis';
-import { OAuth2Client } from 'googleapis-common';
+import { OAuth2Client  } from 'googleapis-common';
 
 const MAX_MESSAGE_PER_FETCH = 100;
 
@@ -136,7 +136,7 @@ export class GmailService {
       return;
     }
 
-    return pmap(
+    return P.map(
       threads,
       (thread) => {
         return gmail.users.threads.modify({

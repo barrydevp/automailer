@@ -4,6 +4,7 @@ import { AccountService } from './account.service';
 import { GmailService } from '@/google/api/gmail.service';
 import { GoogleAuthService } from '@/google/auth/google-auth.service';
 import { AccountRepository } from '@/database/repositories';
+import { eAccountStatus, eAccountType } from '@/database/schemas';
 
 @Injectable()
 export class AccountCron {
@@ -30,9 +31,12 @@ export class AccountCron {
 
     try {
       const accounts = await this.accountRepository.find(
-        {},
-        {},
-        { limit: 1000 },
+        {
+          type: eAccountType.GOOGLE,
+          status: eAccountStatus.AUTO,
+        },
+        { _id: 1, email: 1, credentials: 1, status: 1, stats: 1 },
+        { limit: 1000, sort: { updatedAt: 1 } },
       );
       this.logger.log(`Number of accounts: ${accounts.length}`);
 

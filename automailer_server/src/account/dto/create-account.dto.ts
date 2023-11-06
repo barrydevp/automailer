@@ -20,5 +20,5 @@ export class CreateAccountDto {
 
   locale?: string;
 
-  credentials?: AccountCredential;
+  credentials: AccountCredential;
 }

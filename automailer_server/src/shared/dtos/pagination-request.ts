@@ -7,7 +7,7 @@ export type Constructor<I> = new (...args: any[]) => I;
 export function PaginationRequestDto(defaultLimit = 10, maxLimit = 100) {
   class PaginationRequest {
     @Type(() => Number)
-    page?: number = 0;
+    page?: number = 1;
 
     @Type(() => Number)
     limit?: number = defaultLimit;

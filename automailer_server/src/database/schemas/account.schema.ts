@@ -1,6 +1,6 @@
-import { Exclude } from 'class-transformer';
+import mongoose, { HydratedDocument } from 'mongoose';
 import { Prop, Schema, SchemaFactory, raw } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { Exclude } from 'class-transformer';
 
 export type AccountDocument = HydratedDocument<Account>;
 
@@ -9,13 +9,42 @@ export enum eAccountType {
   GOOGLE = 'google',
 }
 
+export enum eAccountStatus {
+  MANUAL = 'manual',
+  AUTO = 'auto',
+  CRED_INVALID = 'cred_invalid',
+}
+
+@Schema()
+export class AccountCredential {
+  @Prop()
+  accessToken: string;
+
+  @Prop()
+  refreshToken: string;
+
+  @Prop()
+  scope: string;
+
+  @Prop()
+  tokenType: string;
+
+  @Prop()
+  idToken: string;
+
+  @Prop()
+  expriryDate: Date;
+}
+
 @Schema({ timestamps: true })
 export class Account {
-  @Prop({})
+  _id: mongoose.Schema.Types.ObjectId;
+
+  @Prop()
   externalId?: string;
 
   @Prop({ default: eAccountType.NONE, enum: eAccountType, index: true })
-  type: string;
+  type: eAccountType;
 
   @Prop({ required: true, index: true })
   email: string;
@@ -39,17 +68,20 @@ export class Account {
   locale?: string;
 
   @Exclude({ toPlainOnly: true })
-  @Prop(
-    raw({
-      accessToken: String,
-      refreshToken: String,
-      scope: String,
-      tokenType: String,
-      idToken: String,
-      expriryDate: Date,
-    }),
-  )
-  credentials?: Record<string, string>;
+  @Prop({ required: true })
+  credentials: AccountCredential;
+
+  @Prop({ enum: eAccountStatus, index: true })
+  status: eAccountStatus;
+
+  @Prop({
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'AccountStats',
+  })
+  stats?; // if populate is not call then objectId otw AccountStats
+
+  @Prop()
+  connectAt: Date;
 
   @Prop()
   createdAt: Date;
@@ -58,3 +90,6 @@ export class Account {
 }
 
 export const AccountSchema = SchemaFactory.createForClass(Account);
+
+AccountSchema.index({ type: 1, email: 1 });
+AccountSchema.index({ type: 1, status: 1 });

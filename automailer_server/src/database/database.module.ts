@@ -1,8 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Account, AccountSchema } from './schemas/account.schema';
-import { AccountRepository } from '@/database/repositories';
+import {
+  AccountRepository,
+  AccountStatsRepository,
+} from '@/database/repositories';
+import {
+  Account,
+  AccountSchema,
+  AccountStats,
+  AccountStatsSchema,
+} from './schemas';
 
 const mongooseModule = MongooseModule.forRootAsync({
   inject: [ConfigService],
@@ -15,9 +23,12 @@ const mongooseModule = MongooseModule.forRootAsync({
 @Module({
   imports: [
     mongooseModule,
-    MongooseModule.forFeature([{ name: Account.name, schema: AccountSchema }]),
+    MongooseModule.forFeature([
+      { name: Account.name, schema: AccountSchema },
+      { name: AccountStats.name, schema: AccountStatsSchema },
+    ]),
   ],
-  providers: [AccountRepository],
-  exports: [MongooseModule, AccountRepository],
+  providers: [AccountRepository, AccountStatsRepository],
+  exports: [MongooseModule, AccountRepository, AccountStatsRepository],
 })
 export class DatabaseModule {}
