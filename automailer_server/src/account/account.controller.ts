@@ -9,7 +9,11 @@ import {
   Delete,
 } from '@nestjs/common';
 import { AccountService } from './account.service';
-import { BulkWriteAccountDto, FindAccountRequestDto } from './dto';
+import {
+  BulkWriteAccountDto,
+  FindAccountRequestDto,
+  ManualActionDto,
+} from './dto';
 
 @Controller('/accounts')
 export class AccountController {
@@ -20,9 +24,14 @@ export class AccountController {
   //   return this.accountService.create(createAccountDto);
   // }
 
-  @Get('/')
-  find(@Query() query: FindAccountRequestDto) {
+  @Get('/search')
+  filter(@Query() query: FindAccountRequestDto) {
     return this.accountService.find(query);
+  }
+
+  @Get('/')
+  findAll(@Query() query: FindAccountRequestDto) {
+    return this.accountService.findAll(query);
   }
 
   @Get(':id')
@@ -33,6 +42,14 @@ export class AccountController {
   @Post('bulk-write')
   bulkWrite(@Body() body: BulkWriteAccountDto) {
     return this.accountService.bulkWrite(body);
+  }
+
+  @Post('manual-move-gmail')
+  async manualMoveGmail(@Body() body: ManualActionDto) {
+    const moveGmail = await this.accountService.manualMoveGmail(body.moveGmail);
+    return {
+      moveGmail,
+    };
   }
 
   // @Patch(':id')

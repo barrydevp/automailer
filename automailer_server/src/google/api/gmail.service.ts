@@ -1,4 +1,4 @@
-import P from 'bluebird';
+import * as P from 'bluebird';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { google, gmail_v1 } from 'googleapis';

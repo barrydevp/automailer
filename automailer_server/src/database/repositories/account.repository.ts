@@ -29,6 +29,23 @@ export class AccountRepository extends BaseRepository<Account, Account> {
     return this.mapEntities(data);
   }
 
+  async findAll(
+    query: FilterQuery<Account>,
+    select: ProjectionType<Account> = '',
+    options: { limit?: number; sort?: any; skip?: number } = {},
+  ): Promise<Account[]> {
+    const data = await this.Model.find(query, select)
+      .populate({
+        path: 'stats',
+        select: '-account',
+      })
+      .sort(options.sort)
+      .lean()
+      .exec();
+
+    return this.mapEntities(data);
+  }
+
   async findOne(
     query: FilterQuery<Account>,
     select?: ProjectionType<Account>,

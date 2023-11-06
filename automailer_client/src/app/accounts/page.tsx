@@ -14,9 +14,6 @@ export default function AccountPage() {
   const query = useQuery("accounts", findAccount, {
     initialData: { data: [], page: 1, limit: 10 },
     onError: (err: any) => {
-      if (err?.response?.data?.message) {
-        err.message = err.response.data.message;
-      }
       toastError(err);
     },
   });

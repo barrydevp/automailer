@@ -186,13 +186,25 @@ function useToast() {
   };
 }
 
-function toastError(err: Error, options: Toast = {}) {
+function toastError(err: any, options: Toast = {}) {
   return toast({
     variant: "destructive",
     title: "Uh oh! Something went wrong.",
-    description: err?.message || "There was a problem with your request.",
+    description:
+      err?.response?.data?.message ||
+      err?.message ||
+      err ||
+      "There was a problem with your request.",
     ...options,
   });
 }
 
-export { useToast, toast, toastError };
+function toastSuccess(message: string, options: Toast = {}) {
+  return toast({
+    // title: ""
+    description: message || "Successfully!",
+    ...options,
+  });
+}
+
+export { useToast, toast, toastError, toastSuccess };

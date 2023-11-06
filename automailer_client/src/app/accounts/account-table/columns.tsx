@@ -9,7 +9,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 import { RowActions } from "./actions";
-import { statuses, labels } from "./constants";
+import { statuses } from "./constants";
+import { cn } from "@/lib/utils";
+import { format, formatDistance } from "date-fns";
 
 const columnHelper = createColumnHelper<Account>();
 
@@ -79,11 +81,44 @@ export const columns = [
       }
 
       return (
-        <div className="flex w-[100px] items-center">
+        <div className={cn("flex w-[100px] items-center", status.color)}>
           {status.icon && (
-            <status.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+            <status.icon className="mr-1 h-4 w-4 text-muted-foreground" />
           )}
-          <span>{status.label}</span>
+          <span className="font-bold">{status.label}</span>
+        </div>
+      );
+    },
+  }),
+  columnHelper.accessor("updatedAt", {
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="last update" />
+    ),
+    cell: (info) => {
+      const value = info.getValue();
+
+      return (
+        <div className="flex items-center space-x-4">
+          <p className="text-sm font-medium leading-none">
+            {(value && formatDistance(new Date(), new Date(value))) ||
+              "No data"}
+          </p>
+        </div>
+      );
+    },
+  }),
+  columnHelper.accessor("connectAt", {
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="connect at" />
+    ),
+    cell: (info) => {
+      const value = info.getValue();
+
+      return (
+        <div className="flex items-center space-x-4">
+          <p className="text-sm font-medium leading-none">
+            {(value && format(new Date(value), "yyyy-dd-MM")) || "Not yet"}
+          </p>
         </div>
       );
     },

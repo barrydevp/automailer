@@ -15,6 +15,9 @@
       "@@types/*": [
         "./src/@types/*"
       ],
+      "@server/*": [
+        "../automailer_server/src/*"
+      ]
     },
 
     /* Bundler mode */

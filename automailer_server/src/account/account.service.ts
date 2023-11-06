@@ -4,7 +4,8 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import _ from 'lodash';
+import * as _ from 'lodash';
+import * as P from 'bluebird';
 import { errToJSON, toDateDay } from '@/shared/utils';
 import { GoogleAuthService } from '@/google/auth/google-auth.service';
 import { GmailService } from '@/google/api/gmail.service';
@@ -17,18 +18,24 @@ import {
   AccountStats,
   eAccountStatsEventType,
   eAccountStatus,
+  eAccountType,
 } from '@/database/schemas';
 import {
   CreateAccountDto,
   UpdateAccountDto,
   FindAccountRequestDto,
   BulkWriteAccountDto,
+  ListAccountIdDto,
 } from './dto';
 
 const invalidCredErr = new Error('Invalid account credentials.');
 
 export function isInvalidCredentialErr(err) {
-  return err === invalidCredErr || err?.message === 'invalid_grant';
+  return (
+    err === invalidCredErr ||
+    err?.message === 'invalid_grant' ||
+    err?.message === 'Invalid Credential'
+  );
 }
 
 function parseRunErr(err): Record<string, any> {
@@ -97,6 +104,21 @@ export class AccountService {
       limit: query.limit,
       data,
       total,
+    };
+  }
+
+  async findAll(query: FindAccountRequestDto) {
+    const data = await this.accountRepo.findAll(
+      query.getFilter(),
+      {},
+      {
+        sort: { _id: -1 },
+        skip: (query.page - 1) * query.limit,
+        limit: query.limit,
+      },
+    );
+    return {
+      data,
     };
   }
 
@@ -203,6 +225,13 @@ export class AccountService {
       throw invalidCredErr;
     }
 
+    const start = performance.now();
+
+    const result = {
+      moved: 0,
+      duration: 0,
+    };
+
     const { credentials } = account;
     const oauth = this.goauthService.getOauth2Client({
       access_token: credentials.accessToken,
@@ -241,13 +270,45 @@ export class AccountService {
       await this.updateStats(account, {
         mailMoved: messages.length,
       });
+
+      result.moved += messages.length;
     }
 
+    result.duration = performance.now() - start;
+
     // TODO: do something here
+    return result;
+  }
+
+  async manualMoveGmail(listIds: ListAccountIdDto[]) {
+    const accounts = await this.accountRepo.find(
+      {
+        _id: listIds,
+        type: eAccountType.GOOGLE,
+      },
+      { _id: 1, email: 1, credentials: 1, status: 1, stats: 1 },
+      { limit: 1000, sort: { updatedAt: 1 } },
+    );
+
+    return P.map(
+      accounts,
+      async (account) => {
+        const report: Record<string, any> = {};
+
+        try {
+          const result = await this.moveGmailSpamToInbox(account, 1);
+          Object.assign(report, result);
+        } catch (e) {
+          report.err = e.message;
+        }
+
+        return report;
+      },
+      { concurrency: 1 },
+    );
   }
 
   async bulkWrite(ops: BulkWriteAccountDto) {
-    console.log(ops);
     const bulkOps = [];
     if (ops?.update?.length) {
       bulkOps.push(

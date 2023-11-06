@@ -1,6 +1,12 @@
+import {
+  eAccountStatus,
+  eAccountType,
+} from "@/app/accounts/account-table/constants";
+
 export type Account = {
+  _id: string;
   externalId?: string;
-  type: string;
+  type: eAccountType;
   email: string;
   verifiedEmail?: boolean;
   name?: string;
@@ -9,7 +15,10 @@ export type Account = {
   picture?: string;
   locale?: string;
   // credentials?: Record<string, string>;
-  status: string;
+  // stats?; // if populate is not call then objectId otw AccountStats
+  status: eAccountStatus;
+  connectAt?: Date;
+  deactiveAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -18,4 +27,22 @@ export type FindAccountResponse = {
   data: Account[];
   page: number;
   limit: number;
+  total: number;
+};
+
+export type BulkWriteAccountDto = {
+  update?: Partial<Account>[];
+  delete?: { _id: string }[];
+};
+
+export type ListAccountIdDto = {
+  _id: string;
+};
+
+export type ManualActionDto = {
+  moveGmail: ListAccountIdDto[];
+};
+
+export type ManualMoveGmailResponse = {
+  moved: ListAccountIdDto[];
 };

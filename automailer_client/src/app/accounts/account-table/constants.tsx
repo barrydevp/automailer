@@ -1,71 +1,45 @@
 import {
-  ArrowDownIcon,
-  ArrowRightIcon,
-  ArrowUpIcon,
-  CheckCircledIcon,
-  CircleIcon,
   CrossCircledIcon,
-  QuestionMarkCircledIcon,
-  StopwatchIcon,
+  ExclamationTriangleIcon,
+  InfoCircledIcon,
 } from "@radix-ui/react-icons";
+import { CheckCircleIcon } from "lucide-react";
 
-export const labels = [
-  {
-    value: "bug",
-    label: "Bug",
-  },
-  {
-    value: "feature",
-    label: "Feature",
-  },
-  {
-    value: "documentation",
-    label: "Documentation",
-  },
-];
+export enum eAccountType {
+  NONE = "none",
+  GOOGLE = "google",
+}
+
+export enum eAccountStatus {
+  MANUAL = "manual",
+  AUTO = "auto",
+  CRED_INVALID = "cred_invalid",
+  INACTIVE = "inactive",
+}
 
 export const statuses = [
   {
-    value: "backlog",
-    label: "Backlog",
-    icon: QuestionMarkCircledIcon,
+    value: eAccountStatus.MANUAL,
+    label: "Manual",
+    icon: InfoCircledIcon,
+    color: "text-blue-500",
   },
   {
-    value: "todo",
-    label: "Todo",
-    icon: CircleIcon,
+    value: eAccountStatus.AUTO,
+    label: "Auto",
+    icon: CheckCircleIcon,
+    color: "text-green-500",
   },
   {
-    value: "in progress",
-    label: "In Progress",
-    icon: StopwatchIcon,
+    value: eAccountStatus.CRED_INVALID,
+    label: "Cred Invalid",
+    icon: ExclamationTriangleIcon,
+    color: "text-red-500",
   },
   {
-    value: "done",
-    label: "Done",
-    icon: CheckCircledIcon,
-  },
-  {
-    value: "canceled",
-    label: "Canceled",
+    value: eAccountStatus.INACTIVE,
+    label: "Inactive",
     icon: CrossCircledIcon,
-  },
-];
-
-export const priorities = [
-  {
-    label: "Low",
-    value: "low",
-    icon: ArrowDownIcon,
-  },
-  {
-    label: "Medium",
-    value: "medium",
-    icon: ArrowRightIcon,
-  },
-  {
-    label: "High",
-    value: "high",
-    icon: ArrowUpIcon,
+    color: "text-gray-500",
   },
 ];
