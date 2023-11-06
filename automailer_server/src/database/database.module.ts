@@ -16,7 +16,10 @@ const mongooseModule = MongooseModule.forRootAsync({
   inject: [ConfigService],
   imports: [ConfigModule],
   useFactory: async (configService: ConfigService) => ({
-    uri: configService.get<string>('MONGODB_URI'),
+    uri: configService.get<string>(
+      'MONGODB_URI',
+      'mongodb://localhost:27017/automailer',
+    ),
   }),
 });
 

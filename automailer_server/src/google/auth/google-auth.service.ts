@@ -89,6 +89,11 @@ export class GoogleAuthService {
     return tokens;
   }
 
+  async oauth2Revoke(credentials: Credentials) {
+    const oauth = this.getOauth2Client(credentials);
+    return oauth.revokeCredentials();
+  }
+
   /// Reads previously authorized credentials from the save file.
   async loadSavedCredentialsIfExist() {
     const content = await fs.readFile(TOKEN_PATH);

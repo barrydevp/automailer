@@ -1,4 +1,11 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import _ from 'lodash';
+import { errToJSON, toDateDay } from '@/shared/utils';
 import { GoogleAuthService } from '@/google/auth/google-auth.service';
 import { GmailService } from '@/google/api/gmail.service';
 import {
@@ -15,13 +22,17 @@ import {
   CreateAccountDto,
   UpdateAccountDto,
   FindAccountRequestDto,
+  BulkWriteAccountDto,
 } from './dto';
-import { toDateDay } from '@/shared/utils';
 
 const invalidCredErr = new Error('Invalid account credentials.');
 
 export function isInvalidCredentialErr(err) {
   return err === invalidCredErr || err?.message === 'invalid_grant';
+}
+
+function parseRunErr(err): Record<string, any> {
+  return errToJSON(err);
 }
 
 @Injectable()
@@ -121,7 +132,7 @@ export class AccountService {
         {
           type: eAccountStatsEventType.ERROR,
           description: 'An error occurred when running moveGmailSpamToInbox().',
-          body: err,
+          body: parseRunErr(err),
           created: new Date(),
         },
       ];
@@ -136,6 +147,8 @@ export class AccountService {
       { $set: updateAccount },
       { projection: '_id' },
     ).catch((e) => this.logger.error(e, 'Update account status failed'));
+
+    return true;
   }
 
   async updateStats(account: Account, params: Partial<AccountStats>) {
@@ -167,6 +180,7 @@ export class AccountService {
       {
         $set,
         $inc,
+        $push,
       },
       { projection: '_id', upsert: true, new: true },
     );
@@ -180,6 +194,8 @@ export class AccountService {
         { projection: '_id' },
       );
     }
+
+    return true;
   }
 
   async moveGmailSpamToInbox(account: Account, maxMessage?: number) {
@@ -200,21 +216,22 @@ export class AccountService {
     const spamBoxIter = this.gmailService.messageIterator(
       gmail,
       {
-        // labelIds: ['CATEGORY_PROMOTIONS'],
-        labelIds: ['SPAM'],
+        labelIds: ['CATEGORY_PROMOTIONS'],
+        // labelIds: ['SPAM'],
         includeSpamTrash: true,
       },
       maxMessage,
     );
+
     for await (const messages of spamBoxIter) {
       this.logger.log(`number of messages ${messages.length}`);
 
       await this.gmailService.batchModifyMessages(gmail, messages, {
         requestBody: {
-          // removeLabelIds: ['SPAM', 'CATEGORY_PROMOTIONS', 'UNREAD'],
-          removeLabelIds: ['SPAM'],
-          // addLabelIds: ['INBOX', 'IMPORTANT', 'STARRED'],
-          addLabelIds: ['INBOX', 'STARRED'],
+          removeLabelIds: ['SPAM', 'CATEGORY_PROMOTIONS', 'UNREAD'],
+          // removeLabelIds: ['SPAM'],
+          addLabelIds: ['INBOX', 'IMPORTANT', 'STARRED'],
+          // addLabelIds: ['INBOX', 'STARRED'],
         },
       });
 
@@ -229,11 +246,97 @@ export class AccountService {
     // TODO: do something here
   }
 
-  updateById(id: any, update: UpdateAccountDto) {
-    // this.accountRepo.Model.findOneAndUpdate({ _id: id }, { status: status });
+  async bulkWrite(ops: BulkWriteAccountDto) {
+    console.log(ops);
+    const bulkOps = [];
+    if (ops?.update?.length) {
+      bulkOps.push(
+        ...ops.update.map((op) => {
+          return {
+            updateOne: {
+              filter: {
+                _id: op._id,
+              },
+              update: {
+                $set: _.omit(op, '_id'),
+              },
+            },
+          };
+        }),
+      );
+    }
+
+    if (ops?.delete?.length) {
+      bulkOps.push(
+        ...ops.delete.map((op) => {
+          return {
+            updateOne: {
+              filter: {
+                _id: op._id,
+              },
+              update: {
+                $set: {
+                  status: eAccountStatus.INACTIVE,
+                  deactiveAt: new Date(),
+                },
+              },
+            },
+          };
+        }),
+      );
+    }
+
+    if (!bulkOps.length) {
+      throw new BadRequestException('No write operations.');
+    }
+
+    return this.accountRepo.bulkWrite(bulkOps);
   }
 
-  // remove(id: number) {
-  //   return `This action removes a #${id} account`;
-  // }
+  async bulkDeactivate(ids: any[]) {
+    return this.accountRepo.bulkWrite(
+      ids.map((id) => {
+        return {
+          updateOne: {
+            filter: { _id: id },
+            update: {
+              $set: {
+                status: eAccountStatus.INACTIVE,
+                deactiveAt: new Date(),
+              },
+            },
+          },
+        };
+      }),
+    );
+  }
+
+  async updateById(id: any, update: UpdateAccountDto) {
+    const updatedAccount = await this.accountRepo.findOneAndUpdate(
+      {
+        _id: id,
+      },
+      {
+        $set: update,
+      },
+    );
+
+    return this.accountRepo.mapEntity(updatedAccount);
+  }
+
+  async deactiveById(id: any) {
+    const deletedAccount = await this.accountRepo.findOneAndUpdate(
+      {
+        _id: id,
+      },
+      {
+        $set: {
+          status: eAccountStatus.INACTIVE,
+          deactiveAt: new Date(),
+        },
+      },
+    );
+
+    return this.accountRepo.mapEntity(deletedAccount);
+  }
 }

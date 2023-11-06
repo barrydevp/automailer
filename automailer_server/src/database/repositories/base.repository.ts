@@ -170,9 +170,22 @@ export class BaseRepository<
     const saved = await this.Model.findOneAndUpdate(query, data, {
       upsert: true,
       new: true,
-    }).populate('stats');
+    });
 
     return this.mapEntity(saved);
+  }
+
+  async findOneAndUpdate(
+    query: FilterQuery<T_DBModel> & T_Enforcement,
+    updateBody: UpdateQuery<T_DBModel>,
+    options?: QueryOptions<T_DBModel>,
+  ) {
+    const saved = await this.Model.findOneAndUpdate(query, updateBody, {
+      new: true,
+      ...options,
+    });
+
+    return saved;
   }
 
   async upsertMany(data: (FilterQuery<T_DBModel> & T_Enforcement)[]) {

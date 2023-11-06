@@ -9,7 +9,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import { AccountService } from './account.service';
-import { FindAccountRequestDto } from './dto';
+import { BulkWriteAccountDto, FindAccountRequestDto } from './dto';
 
 @Controller('/accounts')
 export class AccountController {
@@ -28,6 +28,11 @@ export class AccountController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.accountService.findOne(id);
+  }
+
+  @Post('bulk-write')
+  bulkWrite(@Body() body: BulkWriteAccountDto) {
+    return this.accountService.bulkWrite(body);
   }
 
   // @Patch(':id')

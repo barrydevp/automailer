@@ -13,6 +13,7 @@ export enum eAccountStatus {
   MANUAL = 'manual',
   AUTO = 'auto',
   CRED_INVALID = 'cred_invalid',
+  INACTIVE = 'inactive',
 }
 
 @Schema()
@@ -81,7 +82,9 @@ export class Account {
   stats?; // if populate is not call then objectId otw AccountStats
 
   @Prop()
-  connectAt: Date;
+  connectAt?: Date;
+  @Prop()
+  deactiveAt?: Date;
 
   @Prop()
   createdAt: Date;
