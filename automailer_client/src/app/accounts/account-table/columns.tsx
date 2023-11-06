@@ -84,7 +84,7 @@ export const columns = [
       }
 
       return (
-        <div className={cn("flex w-[100px] items-center", status.color)}>
+        <div className={cn("flex items-center", status.color)}>
           {status.icon && (
             <status.icon className="mr-1 h-4 w-4 text-muted-foreground" />
           )}
