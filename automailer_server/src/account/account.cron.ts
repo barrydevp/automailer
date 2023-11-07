@@ -1,14 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { AccountService, isInvalidCredentialErr } from './account.service';
+import { AccountService } from './account.service';
 import { GmailService } from '@/google/api/gmail.service';
 import { GoogleAuthService } from '@/google/auth/google-auth.service';
 import { AccountRepository } from '@/database/repositories';
-import {
-  eAccountStatsEventType,
-  eAccountStatus,
-  eAccountType,
-} from '@/database/schemas';
+import { eAccountStatus, eAccountType } from '@/database/schemas';
 
 @Injectable()
 export class AccountCron {
@@ -47,7 +43,7 @@ export class AccountCron {
 
       for (const account of accounts) {
         const e = await this.accountService
-          .moveGmailSpamToInbox(account, 100)
+          .moveGmailAndReply(account, 100)
           .catch((err) => {
             this.logger.error(
               err,

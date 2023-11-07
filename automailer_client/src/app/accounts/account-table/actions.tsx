@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useMutation, useQueryClient } from "react-query";
-import { bulkWriteAccount, manualMoveGmail } from "@/services/api";
+import { bulkWriteAccount, manualTrigger } from "@/services/api";
 import { toastError, toastSuccess } from "@/components/ui/use-toast";
 import { Account } from "@/@types/services/api";
 import { eAccountStatus } from "./constants";
@@ -42,28 +42,26 @@ export function RowActions({ row }: DataTableRowActionsProps) {
     },
   });
 
-  const { mutateAsync: manualMoveGmailMutation } = useMutation(
-    manualMoveGmail,
-    {
-      onSuccess: async (data: any) => {
-        const moveGmail = data?.moveGmail;
+  const { mutateAsync: manualTriggerMutation } = useMutation(manualTrigger, {
+    onSuccess: async (data: any) => {
+      const result = data?.data;
 
-        if (!moveGmail) {
-          toastError("No response");
-        } else {
-          toastSuccess(
-            "Move report: " +
-              `moved{${moveGmail[0]?.moved}} ` +
-              `uration{${moveGmail[0]?.duration}} ` +
-              `error{${moveGmail[0]?.error || ""}}`,
-          );
-        }
-      },
-      onError: (e) => {
-        toastError(e);
-      },
+      if (!result) {
+        toastError("No response");
+      } else {
+        toastSuccess(
+          "Move report: " +
+            `moved{${result[0]?.moved}} ` +
+            `replied{${result[0]?.replied}} ` +
+            `uration{${result[0]?.duration}} ` +
+            `error{${result[0]?.error || ""}}`,
+        );
+      }
     },
-  );
+    onError: (e) => {
+      toastError(e);
+    },
+  });
 
   const onToggleAuto = async () => {
     if (
@@ -117,8 +115,9 @@ export function RowActions({ row }: DataTableRowActionsProps) {
       return;
     }
 
-    await manualMoveGmailMutation({
-      moveGmail: [{ _id: _id }],
+    toastSuccess("Sent manual trigger, waiting for response back.");
+    await manualTriggerMutation({
+      ids: [_id],
     });
   };
 
@@ -136,7 +135,7 @@ export function RowActions({ row }: DataTableRowActionsProps) {
       <DropdownMenuContent align="end" className="w-[160px]">
         <DropdownMenuItem onClick={onToggleAuto}>Toggle auto</DropdownMenuItem>
         <DropdownMenuItem onClick={onManualMoveGmail}>
-          Manual run
+          Manual trigger
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onDelete}>

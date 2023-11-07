@@ -36,7 +36,7 @@ export class AccountController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.accountService.findOne(id);
+    return this.accountService.findById(id);
   }
 
   @Post('bulk-write')
@@ -44,12 +44,25 @@ export class AccountController {
     return this.accountService.bulkWrite(body);
   }
 
-  @Post('manual-move-gmail')
-  async manualMoveGmail(@Body() body: ManualActionDto) {
-    const moveGmail = await this.accountService.manualMoveGmail(body.moveGmail);
+  @Post('manual-trigger')
+  async manualTrigger(@Body() body: ManualActionDto) {
+    const data = await this.accountService.manualMoveGmailAndReply(body.ids);
     return {
-      moveGmail,
+      data,
     };
+  }
+
+  @Get(':id/gmail/list')
+  listGmail(@Param('id') id: string) {
+    return this.accountService.listGmailBox(id);
+  }
+
+  @Post(':id/gmail/reply')
+  replyGmail(
+    @Param('id') id: string,
+    @Body() body: { reply: { id: string }[] },
+  ) {
+    return this.accountService.replyGmail(id, body.reply);
   }
 
   // @Patch(':id')

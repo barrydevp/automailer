@@ -35,14 +35,20 @@ export type BulkWriteAccountDto = {
   delete?: { _id: string }[];
 };
 
-export type ListAccountIdDto = {
+export type AccountIdDto = {
   _id: string;
 };
 
 export type ManualActionDto = {
-  moveGmail: ListAccountIdDto[];
+  ids: string[];
 };
 
-export type ManualMoveGmailResponse = {
-  moved: ListAccountIdDto[];
+export type ManualTriggerResponse = {
+  data: AccountIdDto &
+    {
+      moved?: number;
+      replied?: number;
+      duration?: number;
+      err?: string;
+    }[];
 };

@@ -40,6 +40,9 @@ export class AccountStats {
   mailMoved: number;
 
   @Prop({ default: 0 })
+  mailReplied: number;
+
+  @Prop({ default: 0 })
   runTimes: number;
 
   @Prop({ default: () => toDateDay(new Date()) })

@@ -6,7 +6,7 @@ export class UpdateAccountDto extends PartialType(
   OmitType(CreateAccountDto, ['credentials', 'email', 'type']),
 ) {}
 
-export class ListAccountIdDto {
+export class AccountIdDto {
   @IsString()
   _id: string;
 }
@@ -18,18 +18,15 @@ export class BulkUpdateAccountDto extends UpdateAccountDto {
 
 export class BulkWriteAccountDto {
   @IsArray()
-  @ValidateNested()
   @IsOptional()
   update?: BulkUpdateAccountDto[];
 
   @IsArray()
-  @ValidateNested()
   @IsOptional()
-  delete?: ListAccountIdDto[];
+  delete?: AccountIdDto[];
 }
 
 export class ManualActionDto {
   @IsArray()
-  @ValidateNested()
-  moveGmail: ListAccountIdDto[];
+  ids: string[];
 }

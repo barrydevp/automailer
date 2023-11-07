@@ -3,7 +3,7 @@ import type {
   BulkWriteAccountDto,
   FindAccountResponse,
   ManualActionDto,
-  ManualMoveGmailResponse,
+  ManualTriggerResponse,
 } from "@@types/services/api";
 
 const PREFIX = "/accounts";
@@ -23,9 +23,9 @@ export async function bulkWriteAccount(body: BulkWriteAccountDto) {
   });
 }
 
-export async function manualMoveGmail(body: ManualActionDto) {
-  return ApiService.fetchData<ManualMoveGmailResponse>({
-    url: `${PREFIX}/manual-move-gmail`,
+export async function manualTrigger(body: ManualActionDto) {
+  return ApiService.fetchData<ManualTriggerResponse>({
+    url: `${PREFIX}/manual-trigger`,
     method: "post",
     data: body,
   });

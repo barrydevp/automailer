@@ -25,7 +25,7 @@ import {
   UpdateAccountDto,
   FindAccountRequestDto,
   BulkWriteAccountDto,
-  ListAccountIdDto,
+  AccountIdDto,
 } from './dto';
 
 const invalidCredErr = new Error('Invalid account credentials.');
@@ -122,7 +122,7 @@ export class AccountService {
     };
   }
 
-  async findOne(id: string) {
+  async findById(id: string) {
     const account = await this.accountRepo.findOne({ _id: id });
     if (!account) {
       throw new NotFoundException(`Account not found for id ${id}.`);
@@ -193,6 +193,9 @@ export class AccountService {
     if (params.mailMoved) {
       $inc.mailMoved = params.mailMoved;
     }
+    if (params.mailReplied) {
+      $inc.mailReplied = params.mailReplied;
+    }
 
     const newStats = await this.accountStatsRepo.Model.findOneAndUpdate(
       {
@@ -220,18 +223,7 @@ export class AccountService {
     return true;
   }
 
-  async moveGmailSpamToInbox(account: Account, maxMessage?: number) {
-    if (!account.credentials) {
-      throw invalidCredErr;
-    }
-
-    const start = performance.now();
-
-    const result = {
-      moved: 0,
-      duration: 0,
-    };
-
+  _getGOauth2(account: Account) {
     const { credentials } = account;
     const oauth = this.goauthService.getOauth2Client({
       access_token: credentials.accessToken,
@@ -240,6 +232,50 @@ export class AccountService {
       token_type: credentials.tokenType,
       id_token: credentials.idToken,
     });
+
+    return oauth;
+  }
+
+  async listGmailBox(id: any, maxMessage: number = 10) {
+    const account = await this.findById(id);
+
+    const oauth = this._getGOauth2(account);
+    const gmail = this.gmailService.getV1(oauth);
+
+    const boxIter = this.gmailService.messageIterator(gmail, {}, maxMessage);
+
+    const mails = [];
+
+    for await (const messages of boxIter) {
+      mails.push(...messages);
+    }
+
+    return mails;
+  }
+
+  async replyGmail(id: any, messages: { id: string }[]) {
+    const account = await this.findById(id);
+
+    const oauth = this._getGOauth2(account);
+    const gmail = this.gmailService.getV1(oauth);
+
+    return this.gmailService.batchReplyGmail(gmail, messages);
+  }
+
+  async moveGmailAndReply(account: Account, maxMessage?: number) {
+    if (!account.credentials) {
+      throw invalidCredErr;
+    }
+
+    const result = {
+      moved: 0,
+      replied: 0,
+      duration: 0,
+    };
+
+    const start = performance.now();
+
+    const oauth = this._getGOauth2(account);
     const gmail = this.gmailService.getV1(oauth);
 
     const spamBoxIter = this.gmailService.messageIterator(
@@ -253,7 +289,9 @@ export class AccountService {
     );
 
     for await (const messages of spamBoxIter) {
-      this.logger.log(`number of messages ${messages.length}`);
+      this.logger.log(
+        `account(${account._id}) number of messages ${messages.length}`,
+      );
 
       await this.gmailService.batchModifyMessages(gmail, messages, {
         requestBody: {
@@ -264,14 +302,43 @@ export class AccountService {
         },
       });
 
-      this.logger.log(`moved ${messages.length}`);
+      this.logger.log(`account(${account._id}) moved ${messages.length}`);
       // TODO: add statistic here
 
-      await this.updateStats(account, {
-        mailMoved: messages.length,
-      });
-
       result.moved += messages.length;
+
+      const batchRet = await this.gmailService.batchReplyGmail(
+        gmail,
+        messages,
+        {
+          text: 'Thank you for your information.',
+        },
+      );
+
+      const errReplieds = batchRet.filter((e) => !!e.err);
+
+      const nReplied = batchRet.length - errReplieds.length;
+      this.logger.log(`account(${account._id}) replied ${nReplied}`);
+
+      result.replied += nReplied;
+
+      const updateStatsParams: Record<string, any> = {
+        mailReplied: nReplied,
+        mailMoved: messages.length,
+      };
+
+      if (errReplieds.length) {
+        updateStatsParams.events = [
+          {
+            type: eAccountStatsEventType.ERROR,
+            description: 'An error occurred when reply gmail.',
+            body: errReplieds,
+            created: new Date(),
+          },
+        ];
+      }
+
+      await this.updateStats(account, updateStatsParams);
     }
 
     result.duration = performance.now() - start;
@@ -280,7 +347,7 @@ export class AccountService {
     return result;
   }
 
-  async manualMoveGmail(listIds: ListAccountIdDto[]) {
+  async manualMoveGmailAndReply(listIds: string[]) {
     const accounts = await this.accountRepo.find(
       {
         _id: listIds,
@@ -293,12 +360,15 @@ export class AccountService {
     return P.map(
       accounts,
       async (account) => {
-        const report: Record<string, any> = {};
+        const report: Record<string, any> = {
+          _id: account._id,
+        };
 
         try {
-          const result = await this.moveGmailSpamToInbox(account);
+          const result = await this.moveGmailAndReply(account, 1);
           Object.assign(report, result);
         } catch (e) {
+          this.logger.error(e, 'error when run manualMoveGmailAndReply()');
           report.err = e.message;
         }
 
