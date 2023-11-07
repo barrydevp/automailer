@@ -42,13 +42,15 @@ export class AccountCron {
       this.logger.log(`Number of accounts: ${accounts.length}`);
 
       for (const account of accounts) {
-        const e = await this.accountService
+        let e: any;
+        await this.accountService
           .moveGmailAndReply(account, 100)
           .catch((err) => {
             this.logger.error(
               err,
               `error when processing account ${account.email}`,
             );
+            e = err;
             return err;
           });
 
