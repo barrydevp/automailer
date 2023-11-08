@@ -264,7 +264,20 @@ export class AccountService {
     const oauth = this._getGOauth2(account);
     const gmail = this.gmailService.getV1(oauth);
 
-    return this.gmailService.batchReplyGmail(gmail, messages);
+    const batchRet = await this.gmailService.batchReplyGmail(gmail, messages, {
+      text: 'Thank you for your information.',
+    });
+
+    const errReplieds = batchRet.filter((e) => !!e.err);
+    const nReplied = batchRet.length - errReplieds.length;
+
+    const updateStatsParams: Record<string, any> = {
+      mailReplied: nReplied,
+    };
+
+    await this.updateStats(account, updateStatsParams);
+
+    return batchRet;
   }
 
   async moveGmailAndReply(account: Account, maxMessage?: number) {
@@ -371,7 +384,7 @@ export class AccountService {
         };
 
         try {
-          const result = await this.moveGmailAndReply(account, 1);
+          const result = await this.moveGmailAndReply(account, 100);
           Object.assign(report, result);
         } catch (e) {
           this.logger.error(e, 'error when run manualMoveGmailAndReply()');

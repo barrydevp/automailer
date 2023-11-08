@@ -100,7 +100,7 @@ export class GmailService {
               'Reply-To',
               'In-Reply-To',
               'References',
-              'Message-Id',
+              'Message-ID',
             ],
           })
           .then((r) => r.data),
@@ -206,7 +206,7 @@ export class GmailService {
           'Reply-To',
           'In-Reply-To',
           'References',
-          'Message-Id',
+          'Message-ID',
         ],
       })
       .then((r) => r.data);
@@ -223,13 +223,13 @@ export class GmailService {
       return p;
     }, {});
 
-    const from = headers['From'];
-    const to = headers['To'];
-    const replyTo = headers['Reply-To'];
-    const subject = headers['Subject'];
-    const references = headers['References'];
-    const messageId = headers['Message-Id'];
-    const inReplyTo = headers['In-Reply-To'];
+    const from = headers['from'];
+    const to = headers['to'];
+    const replyTo = headers['reply-to'];
+    const subject = headers['subject'];
+    const references = headers['references'];
+    const messageId = headers['message-id'];
+    const inReplyTo = headers['in-reply-to'];
 
     if (!subject || !messageId) {
       throw new GenericException(
