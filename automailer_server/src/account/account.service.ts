@@ -236,18 +236,23 @@ export class AccountService {
     return oauth;
   }
 
-  async listGmailBox(id: any, maxMessage: number = 10) {
+  async listGmailBox(id: any, messageIds: string[], maxMessage: number = 10) {
     const account = await this.findById(id);
 
     const oauth = this._getGOauth2(account);
     const gmail = this.gmailService.getV1(oauth);
 
-    const boxIter = this.gmailService.messageIterator(gmail, {}, maxMessage);
-
     const mails = [];
 
-    for await (const messages of boxIter) {
-      mails.push(...messages);
+    if (messageIds && messageIds.length) {
+      mails.push(
+        ...(await this.gmailService.listMessageMetadata(gmail, messageIds)),
+      );
+    } else {
+      const boxIter = this.gmailService.messageIterator(gmail, {}, maxMessage);
+      for await (const messages of boxIter) {
+        mails.push(...messages);
+      }
     }
 
     return mails;

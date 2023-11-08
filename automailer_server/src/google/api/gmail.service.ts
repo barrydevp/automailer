@@ -84,6 +84,32 @@ export class GmailService {
     }
   }
 
+  async listMessageMetadata(gmail: gmail_v1.Gmail, ids: string[]) {
+    const messages = await P.map(
+      ids,
+      (id) =>
+        gmail.users.messages
+          .get({
+            id: id,
+            userId: 'me',
+            format: 'metadata',
+            metadataHeaders: [
+              'From',
+              'To',
+              'Subject',
+              'Reply-To',
+              'In-Reply-To',
+              'References',
+              'Message-Id',
+            ],
+          })
+          .then((r) => r.data),
+      { concurrency: 3 },
+    );
+
+    return messages;
+  }
+
   messageIterator(
     gmail: gmail_v1.Gmail,
     params: Omit<gmail_v1.Params$Resource$Users$Messages$List, 'maxResults'>,

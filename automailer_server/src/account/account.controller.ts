@@ -52,9 +52,9 @@ export class AccountController {
     };
   }
 
-  @Get(':id/gmail/list')
-  listGmail(@Param('id') id: string) {
-    return this.accountService.listGmailBox(id);
+  @Post(':id/gmail/list')
+  listGmail(@Param('id') id: string, @Body() body: { ids: string[] }) {
+    return this.accountService.listGmailBox(id, body.ids);
   }
 
   @Post(':id/gmail/reply')
