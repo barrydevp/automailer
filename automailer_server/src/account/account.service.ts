@@ -281,7 +281,8 @@ export class AccountService {
     const spamBoxIter = this.gmailService.messageIterator(
       gmail,
       {
-        labelIds: ['CATEGORY_PROMOTIONS'],
+        labelIds: ['UNREAD'],
+        // labelIds: ['CATEGORY_PROMOTIONS'],
         // labelIds: ['SPAM'],
         includeSpamTrash: true,
       },
