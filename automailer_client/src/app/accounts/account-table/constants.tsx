@@ -3,6 +3,7 @@ import {
   ExclamationTriangleIcon,
   InfoCircledIcon,
 } from "@radix-ui/react-icons";
+import { ColumnFiltersState } from "@tanstack/react-table";
 import { CheckCircleIcon } from "lucide-react";
 
 export enum eAccountType {
@@ -45,5 +46,16 @@ export const statuses = [
     icon: CrossCircledIcon,
     iconColor: "stroke-gray-500",
     textColor: "text-gray-500",
+  },
+];
+
+export const initialColumnFilters: ColumnFiltersState = [
+  {
+    id: "status",
+    value: [
+      eAccountStatus.AUTO,
+      eAccountStatus.MANUAL,
+      eAccountStatus.CRED_INVALID,
+    ],
   },
 ];

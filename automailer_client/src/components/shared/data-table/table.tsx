@@ -36,19 +36,21 @@ export interface DataTableToolbarProps<TData> {
 export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  initialColumnFilters?: ColumnFiltersState;
   toolbarRender?: (props: DataTableToolbarProps<TData>) => React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  initialColumnFilters,
   toolbarRender,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
+    initialColumnFilters || [],
   );
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
