@@ -108,15 +108,10 @@ export class AccountService {
   }
 
   async findAll(query: FindAccountRequestDto) {
-    const data = await this.accountRepo.findAll(
-      query.getFilter(),
-      {},
-      {
-        sort: { _id: -1 },
-        skip: (query.page - 1) * query.limit,
-        limit: query.limit,
-      },
-    );
+    const data = await this.accountRepo.findAll(query.getFilter(), '-__v', {
+      sort: { _id: -1 },
+    });
+
     return {
       data,
     };
@@ -223,15 +218,21 @@ export class AccountService {
     return true;
   }
 
-  _getGOauth2(account: Account) {
+  _getGCredentials(account: Account) {
     const { credentials } = account;
-    const oauth = this.goauthService.getOauth2Client({
+    return {
       access_token: credentials.accessToken,
       refresh_token: credentials.refreshToken,
       scope: credentials.scope,
       token_type: credentials.tokenType,
       id_token: credentials.idToken,
-    });
+    };
+  }
+
+  _getGOauth2(account: Account) {
+    const oauth = this.goauthService.getOauth2Client(
+      this._getGCredentials(account),
+    );
 
     return oauth;
   }
@@ -444,20 +445,27 @@ export class AccountService {
   }
 
   async bulkDeactivate(ids: any[]) {
-    return this.accountRepo.bulkWrite(
-      ids.map((id) => {
-        return {
-          updateOne: {
-            filter: { _id: id },
-            update: {
-              $set: {
-                status: eAccountStatus.INACTIVE,
-                deactiveAt: new Date(),
-              },
-            },
-          },
-        };
-      }),
+    // return this.accountRepo.bulkWrite(
+    //   ids.map((id) => {
+    //     return {
+    //       updateOne: {
+    //         filter: { _id: id },
+    //         update: {
+    //           $set: {
+    //             status: eAccountStatus.INACTIVE,
+    //             deactiveAt: new Date(),
+    //           },
+    //         },
+    //       },
+    //     };
+    //   }),
+    // );
+    return P.map(
+      ids,
+      (id) => {
+        return this.deactiveById(id);
+      },
+      { concurrency: 3 },
     );
   }
 
@@ -475,7 +483,11 @@ export class AccountService {
   }
 
   async deactiveById(id: any) {
-    const deletedAccount = await this.accountRepo.findOneAndUpdate(
+    const account = await this.findById(id);
+
+    await this.goauthService.oauth2Revoke(this._getGCredentials(account));
+
+    const deAccount = await this.accountRepo.findOneAndUpdate(
       {
         _id: id,
       },
@@ -487,6 +499,6 @@ export class AccountService {
       },
     );
 
-    return this.accountRepo.mapEntity(deletedAccount);
+    return this.accountRepo.mapEntity(deAccount);
   }
 }

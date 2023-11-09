@@ -200,6 +200,13 @@ export class BaseRepository<
     return await this.Model.bulkWrite(bulkOperations, { ordered });
   }
 
+  public mapEntityRaw<TData>(
+    data: any,
+    mappedClass: ClassConstructor<TData>,
+  ): TData {
+    return plainToInstance(mappedClass, JSON.parse(JSON.stringify(data)));
+  }
+
   public mapEntity<TData>(
     data: TData,
   ): TData extends null ? null : T_MappedEntity {
@@ -207,6 +214,16 @@ export class BaseRepository<
       this.entity,
       JSON.parse(JSON.stringify(data)),
     ) as any;
+  }
+
+  public mapEntitiesRaw<TData>(
+    data: any,
+    mappedClass: ClassConstructor<TData>,
+  ): TData[] {
+    return plainToInstance<TData, TData[]>(
+      mappedClass,
+      JSON.parse(JSON.stringify(data)),
+    );
   }
 
   public mapEntities(data: any): T_MappedEntity[] {

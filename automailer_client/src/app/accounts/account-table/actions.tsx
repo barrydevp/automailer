@@ -18,7 +18,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useMutation, useQueryClient } from "react-query";
-import { bulkWriteAccount, manualTrigger } from "@/services/api";
+import {
+  bulkDeactivateAccount,
+  bulkWriteAccount,
+  manualTrigger,
+} from "@/services/api";
 import { toastError, toastSuccess } from "@/components/ui/use-toast";
 import { Account } from "@/@types/services/api";
 import { eAccountStatus } from "./constants";
@@ -30,7 +34,7 @@ interface DataTableRowActionsProps {
 export function RowActions({ row }: DataTableRowActionsProps) {
   const queryClient = useQueryClient();
 
-  const { mutateAsync: bulkWrite } = useMutation(bulkWriteAccount, {
+  const { mutateAsync: bulkWriteMutation } = useMutation(bulkWriteAccount, {
     onSuccess: async () => {
       await queryClient.refetchQueries({
         predicate: ({ queryKey }) => queryKey.includes("accounts"),
@@ -41,6 +45,21 @@ export function RowActions({ row }: DataTableRowActionsProps) {
       toastError(e);
     },
   });
+
+  const { mutateAsync: bulkDeactivateMutation } = useMutation(
+    bulkDeactivateAccount,
+    {
+      onSuccess: async () => {
+        await queryClient.refetchQueries({
+          predicate: ({ queryKey }) => queryKey.includes("accounts"),
+        });
+        toastSuccess("Accounts deactivated!");
+      },
+      onError: (e) => {
+        toastError(e);
+      },
+    },
+  );
 
   const { mutateAsync: manualTriggerMutation } = useMutation(manualTrigger, {
     onSuccess: async (data: any) => {
@@ -78,7 +97,7 @@ export function RowActions({ row }: DataTableRowActionsProps) {
 
     const { status, _id } = row.original;
 
-    await bulkWrite({
+    await bulkWriteMutation({
       update: [
         {
           _id: _id,
@@ -98,8 +117,8 @@ export function RowActions({ row }: DataTableRowActionsProps) {
 
     const { _id } = row.original;
 
-    await bulkWrite({
-      delete: [{ _id: _id }],
+    await bulkDeactivateMutation({
+      ids: [_id],
     });
   };
 

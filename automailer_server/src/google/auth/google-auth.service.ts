@@ -91,7 +91,15 @@ export class GoogleAuthService {
 
   async oauth2Revoke(credentials: Credentials) {
     const oauth = this.getOauth2Client(credentials);
-    return oauth.revokeCredentials();
+    const revoked = await oauth.revokeCredentials().then((r) => r.data);
+    // TODO: future update
+    // .catch((e) => {
+    //   if (e?.message === 'invalid_token') {
+    //     return { success: true };
+    //   }
+    //   throw e;
+    // });
+    return revoked.success;
   }
 
   /// Reads previously authorized credentials from the save file.

@@ -22,7 +22,7 @@ export class AccountCron {
   async moveGmailSpamToInbox() {
     if (
       this.moveGmailSpamToInboxRunning ||
-      process.env.NODE_ENV == 'development' // don't run on development
+      process.env.NODE_ENV === 'development' // don't run on development
     ) {
       return;
     }

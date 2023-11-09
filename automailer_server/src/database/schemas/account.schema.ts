@@ -1,6 +1,7 @@
 import mongoose, { HydratedDocument } from 'mongoose';
 import { Prop, Schema, SchemaFactory, raw } from '@nestjs/mongoose';
 import { Exclude } from 'class-transformer';
+import { AccountStats } from './account-stats.schema';
 
 export type AccountDocument = HydratedDocument<Account>;
 
@@ -90,9 +91,18 @@ export class Account {
   createdAt: Date;
   @Prop()
   updatedAt: Date;
+
+  // virtual key
+  allStats?: AccountStats[];
 }
 
 export const AccountSchema = SchemaFactory.createForClass(Account);
 
 AccountSchema.index({ type: 1, email: 1 });
 AccountSchema.index({ type: 1, status: 1 });
+
+AccountSchema.virtual('allStats', {
+  ref: 'AccountStats',
+  localField: '_id',
+  foreignField: 'account',
+});

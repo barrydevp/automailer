@@ -31,13 +31,32 @@ export class AccountRepository extends BaseRepository<Account, Account> {
 
   async findAll(
     query: FilterQuery<Account>,
-    select: ProjectionType<Account> = '',
+    select: ProjectionType<Account> = '-__v',
     options: { limit?: number; sort?: any; skip?: number } = {},
   ): Promise<Account[]> {
     const data = await this.Model.find(query, select)
       .populate({
         path: 'stats',
-        select: '-account',
+        select: {
+          _id: 0,
+          mailMoved: 1,
+          mailReplied: 1,
+          runTimes: 1,
+          'events.type': 1,
+          'events.description': 1,
+          day: 1,
+        },
+      })
+      .populate({
+        path: 'allStats',
+        select: {
+          _id: 0,
+          account: 1,
+          mailMoved: 1,
+          mailReplied: 1,
+          runTimes: 1,
+          day: 1,
+        },
       })
       .sort(options.sort)
       .lean()

@@ -23,6 +23,14 @@ export async function bulkWriteAccount(body: BulkWriteAccountDto) {
   });
 }
 
+export async function bulkDeactivateAccount(body: ManualActionDto) {
+  return ApiService.fetchData<any>({
+    url: `${PREFIX}/bulk-deactivate`,
+    method: "post",
+    data: body,
+  });
+}
+
 export async function manualTrigger(body: ManualActionDto) {
   return ApiService.fetchData<ManualTriggerResponse>({
     url: `${PREFIX}/manual-trigger`,

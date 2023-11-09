@@ -44,6 +44,11 @@ export class AccountController {
     return this.accountService.bulkWrite(body);
   }
 
+  @Post('bulk-deactivate')
+  bulkDeactivate(@Body() body: { ids: string[] }) {
+    return this.accountService.bulkDeactivate(body.ids);
+  }
+
   @Post('manual-trigger')
   async manualTrigger(@Body() body: ManualActionDto) {
     const data = await this.accountService.manualMoveGmailAndReply(body.ids);

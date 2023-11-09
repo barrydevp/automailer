@@ -84,16 +84,21 @@ export const columns = [
       }
 
       return (
-        <div className={cn("flex items-center", status.color)}>
+        <div className={cn("flex items-center", status.textColor)}>
           {status.icon && (
-            <status.icon className="mr-1 h-4 w-4 text-muted-foreground" />
+            <status.icon
+              className={cn(
+                "mr-1 h-4 w-4 text-muted-foreground",
+                status.iconColor,
+              )}
+            />
           )}
           <span className="font-bold">{status.label}</span>
         </div>
       );
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id))
+      return value.includes(row.getValue(id));
     },
   }),
   columnHelper.accessor("updatedAt", {
