@@ -91,14 +91,15 @@ export class GoogleAuthService {
 
   async oauth2Revoke(credentials: Credentials) {
     const oauth = this.getOauth2Client(credentials);
-    const revoked = await oauth.revokeCredentials().then((r) => r.data);
-    // TODO: future update
-    // .catch((e) => {
-    //   if (e?.message === 'invalid_token') {
-    //     return { success: true };
-    //   }
-    //   throw e;
-    // });
+    const revoked = await oauth
+      .revokeCredentials()
+      .then((r) => r.data)
+      .catch((e) => {
+        if (e?.message === 'invalid_token') {
+          return { success: true };
+        }
+        throw e;
+      });
     return revoked.success;
   }
 
