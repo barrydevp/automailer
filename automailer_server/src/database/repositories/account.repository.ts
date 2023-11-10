@@ -47,17 +47,17 @@ export class AccountRepository extends BaseRepository<Account, Account> {
           day: 1,
         },
       })
-      .populate({
-        path: 'allStats',
-        select: {
-          _id: 0,
-          account: 1,
-          mailMoved: 1,
-          mailReplied: 1,
-          runTimes: 1,
-          day: 1,
-        },
-      })
+      // .populate({
+      //   path: 'allStats',
+      //   select: {
+      //     _id: 0,
+      //     account: 1,
+      //     mailMoved: 1,
+      //     mailReplied: 1,
+      //     runTimes: 1,
+      //     day: 1,
+      //   },
+      // })
       .sort(options.sort)
       .lean()
       .exec();
