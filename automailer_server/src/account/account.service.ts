@@ -33,6 +33,7 @@ const invalidCredErr = new Error('Invalid account credentials.');
 export function isInvalidCredentialErr(err) {
   return (
     err === invalidCredErr ||
+    err?.message === 'access_denied' ||
     err?.message === 'invalid_grant' ||
     err?.message === 'Invalid Credentials'
   );
